@@ -245,7 +245,38 @@ export default function App() {
   function onEmail(email, firstName) {
     setSubmitting(true);
     setUName(firstName);
-    console.log("LEAD:", { email: email, name: firstName, answers: answers });
+    var r = calcEG(answers);
+
+    // === BREVO API ===
+    // DEIN API-KEY HIER EINSETZEN (zwischen den Anführungszeichen):
+    var BREVO_API_KEY = "xsmtpsib-5a48c11eeddf069eef9b060e76ccd41a96fc3be7d8691ed1eb96d430866ef7a3-lKS3UsOMsIB5VcLI";
+
+    fetch("https://api.brevo.com/v3/contacts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        email: email,
+        attributes: {
+          VORNAME: firstName,
+          ELTERNGELD_OHNE: r.eg,
+          ELTERNGELD_MIT: r.opt,
+          ELTERNGELD_DIFF: r.diff,
+          STEUERKLASSE: answers.steuerklasse || "",
+          GEBURTSTERMIN: answers.geburtstermin || ""
+        },
+        listIds: [9],
+        updateEnabled: true
+      })
+    }).then(function (res) {
+      console.log("Brevo:", res.status);
+    }).catch(function (err) {
+      console.log("Brevo Fehler:", err);
+    });
+    // === ENDE BREVO ===
+
     setMsgs(function (p) { return p.concat([{ from: "user", text: firstName + " — " + email, id: "email-u" }]); });
     setTimeout(function () {
       setGated(true);
