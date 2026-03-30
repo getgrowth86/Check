@@ -248,9 +248,8 @@ export default function App() {
     setUName(firstName);
     var r = calcEG(answers);
 
-    // === BREVO API ===
-    // DEIN API-KEY HIER EINSETZEN (zwischen den Anführungszeichen):
-    var BREVO_API_KEY = "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";
+// === BREVO API ===
+    var BREVO_API_KEY = process.env.REACT_APP_BREVO_KEY;
 
     fetch("https://api.brevo.com/v3/contacts", {
       method: "POST",
