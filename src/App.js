@@ -250,7 +250,7 @@ export default function App() {
 
     // === BREVO API ===
     // DEIN API-KEY HIER EINSETZEN (zwischen den Anführungszeichen):
-    var BREVO_API_KEY = "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";
+    var BREVO_API_KEY = "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";
 
     fetch("https://api.brevo.com/v3/contacts", {
       method: "POST",
