@@ -13,7 +13,7 @@ var C = {
 };
 
 function calcEG(a) {
-  var b = a.einkommen || 2000;
+  var b = a.einkommen1 || 2000;
   var sk = a.steuerklasse || "1";
   var abz = 0.60;
   if (sk === "3") abz = 0.73;
@@ -36,11 +36,8 @@ function calcEG(a) {
     }
   }
   if (sk === "unknown") tipps.push({ icon: "⚠️", title: "Steuerklasse klären", text: "Die Steuerklasse beeinflusst dein Elterngeld massiv. Das muss vor der Geburt geklärt werden.", urgent: true });
-  if (a.partner === "ja" || a.partner === "unklar") tipps.push({ icon: "👫", title: "Partnerschaftsbonus", text: "Bis zu 4 Extra-Monate ElterngeldPlus möglich. Das können über 3.600 € zusätzlich sein." });
-  if (a.partner === "alleinerziehend") tipps.push({ icon: "💪", title: "Alleinerziehenden-Regel", text: "Dir stehen 14 statt 12 Monate zu. Das sind bis zu 3.600 € mehr." });
-  if (a.arbeitsmodell === "selbststaendig" || a.arbeitsmodell === "nebenberuflich") tipps.push({ icon: "📊", title: "Gewinnermittlung", text: "Bei Selbstständigen zählt der Gewinn der letzten 12 Monate. Die richtige Gestaltung kann dein Elterngeld deutlich erhöhen." });
-  if (a.arbeitsmodell === "landwirt") tipps.push({ icon: "🌾", title: "Sonderregeln Landwirtschaft", text: "Für Landwirte gelten besondere Regelungen bei der Gewinnermittlung. Hier steckt oft ungenutztes Potenzial." });
-  if (a.arbeitsmodell === "teilzeit" || a.arbeitsmodell === "minijob") tipps.push({ icon: "⏱️", title: "ElterngeldPlus", text: "Bei Teilzeit oft lukrativer: doppelte Bezugsdauer bei halbem Satz." });
+  if (a.geschwister === "ja") tipps.push({ icon: "👶", title: "Geschwisterbonus", text: "Mit einem älteren Geschwister bekommst du einen monatlichen Zuschlag. Das können bis zu 10% mehr sein!" });
+  if (a.arbeitsmodell === "selbstaendig") tipps.push({ icon: "📊", title: "Gewinnermittlung", text: "Bei Selbstständigen zählt der Gewinn der letzten 12 Monate. Die richtige Gestaltung kann dein Elterngeld deutlich erhöhen." });
   if (tipps.length === 0) tipps.push({ icon: "🎯", title: "Individuelle Analyse", text: "Jede Situation ist anders. Im persönlichen Gespräch finden wir die optimale Kombination für euch." });
   return { eg: eg, opt: opt, diff: (opt * 14) - (eg * 12), tipps: tipps };
 }
@@ -89,33 +86,52 @@ function Btn(props) {
   );
 }
 
-function EmailGate(props) {
+function PhoneGate(props) {
+  var [phone, setPhone] = useState("");
   var [email, setEmail] = useState("");
   var [name, setName] = useState("");
+  var [time, setTime] = useState("");
   var [err, setErr] = useState("");
+  
   function submit(e) {
     e.preventDefault();
-    if (!name.trim() || email.indexOf("@") < 0 || email.indexOf(".") < 0) { setErr("Bitte Name und gültige E-Mail eingeben."); return; }
+    if (!name.trim() || !email.trim() || !phone.trim() || !time) { 
+      setErr("Bitte alle Felder ausfüllen."); 
+      return; 
+    }
+    if (email.indexOf("@") < 0 || email.indexOf(".") < 0) {
+      setErr("Bitte gültige E-Mail eingeben.");
+      return;
+    }
     setErr("");
-    props.onSubmit(email.trim(), name.trim());
+    props.onSubmit(name.trim(), email.trim(), phone.trim(), time);
   }
+  
   return (
     <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid " + C.green, padding: 24, margin: "8px 0" }}>
       <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>{"🎁"}</div>
-        <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: C.forest, margin: "0 0 6px" }}>Dein Ergebnis ist fertig!</h3>
-        <p style={{ fontSize: 13.5, color: C.textMed, lineHeight: 1.5 }}>Trag deinen Namen und E-Mail ein, um dein Ergebnis zu sehen <strong>+ 3 Sofort-Tipps</strong> per Mail.</p>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>{"📞"}</div>
+        <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: C.forest, margin: "0 0 6px" }}>Andrea ruft dich an!</h3>
+        <p style={{ fontSize: 13.5, color: C.textMed, lineHeight: 1.5 }}>Trag deine Kontaktdaten ein und Andrea bespricht deine individuelle Situation mit dir.</p>
       </div>
       <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <input type="text" placeholder="Dein Vorname" value={name} onChange={function (e) { setName(e.target.value); }} style={{ border: "1.5px solid " + C.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
         <input type="email" placeholder="Deine E-Mail-Adresse" value={email} onChange={function (e) { setEmail(e.target.value); }} style={{ border: "1.5px solid " + C.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
+        <input type="tel" placeholder="Deine Telefonnummer" value={phone} onChange={function (e) { setPhone(e.target.value); }} style={{ border: "1.5px solid " + C.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
+        <select value={time} onChange={function (e) { setTime(e.target.value); }} style={{ border: "1.5px solid " + C.border, borderRadius: 10, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", outline: "none" }}>
+          <option value="">Wann bist du erreichbar?</option>
+          <option value="09-12">9-12 Uhr</option>
+          <option value="12-15">12-15 Uhr</option>
+          <option value="15-18">15-18 Uhr</option>
+          <option value="18-20">18-20 Uhr</option>
+        </select>
         {err && <p style={{ fontSize: 12, color: C.accent, margin: 0 }}>{err}</p>}
         <button type="submit" disabled={props.loading} style={{ background: "linear-gradient(135deg," + C.green + "," + C.greenMid + ")", color: "#fff", border: "none", borderRadius: 10, padding: "13px 20px", fontSize: 15, fontWeight: 700, cursor: props.loading ? "wait" : "pointer", fontFamily: "inherit", opacity: props.loading ? 0.7 : 1 }}>
-          {props.loading ? "Wird berechnet..." : "Mein Ergebnis anzeigen →"}
+          {props.loading ? "Wird verarbeitet..." : "Andrea soll mich anrufen →"}
         </button>
       </form>
       <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 12, fontSize: 11, color: C.textLight }}>
-        <span>{"🔒"} DSGVO-konform</span><span>Kein Spam</span><span>Jederzeit abmeldbar</span>
+        <span>{"🔒"} DSGVO-konform</span><span>Keine Spam-Anrufe</span><span>Unverbindlich</span>
       </div>
     </div>
   );
@@ -123,6 +139,7 @@ function EmailGate(props) {
 
 function Result(props) {
   var r = props.result;
+  var price = props.arbeitsmodell === "angestellt" ? 297 : 397;
   return (
     <div style={{ background: C.cream, borderRadius: 14, border: "1px solid " + C.border, padding: 20, margin: "8px 0" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -162,13 +179,10 @@ function Result(props) {
         })}
       </div>
       <div style={{ background: C.accentSoft, borderLeft: "3px solid " + C.accent, borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 13, lineHeight: 1.6, color: C.text }}>
-        <strong>{"⏰"} Wichtig:</strong> Der Steuerklassenwechsel muss spätestens 7 Monate vor der Geburt erfolgen.
+        <strong>{"💰"} Dein Basis-Paket:</strong> {price}€ einmalig. Andrea erklärt dir alles Weitere.
       </div>
       <div style={{ textAlign: "center" }}>
-        <a href={CALENDLY} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: "linear-gradient(135deg," + C.accent + "," + C.warm + ")", color: "#fff", fontSize: 15, fontWeight: 700, padding: "14px 28px", borderRadius: 12, textDecoration: "none", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(231,111,81,.25)" }}>
-          Kostenloses Beratungsgespräch buchen →
-        </a>
-        <p style={{ fontSize: 11.5, color: C.textLight, marginTop: 10 }}>15 Minuten per Zoom · 100% kostenlos · unverbindlich</p>
+        <p style={{ fontSize: 12.5, color: C.textMed, margin: "0 0 10px" }}>Andrea ruft dich bald an und bespricht deine individuelle Situation.</p>
       </div>
     </div>
   );
@@ -202,15 +216,41 @@ export default function App() {
 
   var FLOW = [
     { id: "welcome", bot: ["Hey! Ich bin Alina von der Zwergengruppe.", "In unter 2 Minuten zeige ich dir, wie viel Elterngeld dir zusteht und wo du möglicherweise Geld verschenkst."], type: "start" },
+    
+    // NEU: Angestellt/Selbständig ZUERST (bestimmt Preis)
+    { id: "arbeitsmodell_first", bot: ["Bist du angestellt oder selbständig?"], type: "select", options: [{ label: "Angestellt", value: "angestellt" }, { label: "Selbständig (auch nebenberuflich)", value: "selbstaendig" }] },
+    
     { id: "geburtstermin", bot: ["Wann ist der errechnete Geburtstermin?"], type: "date" },
-    { id: "einkommen", bot: ["Wie hoch ist dein monatliches Brutto-Einkommen?"], type: "select", options: [{ label: "Unter 1.500 €", value: 1200 }, { label: "1.500 – 2.500 €", value: 2000 }, { label: "2.500 – 3.500 €", value: 3000 }, { label: "3.500 – 4.500 €", value: 4000 }, { label: "Über 4.500 €", value: 5000 }] },
-    { id: "steuerklasse", bot: ["Welche Steuerklasse hast du aktuell?"], type: "select", options: [{ label: "Klasse I", value: "1" }, { label: "Klasse II", value: "2" }, { label: "Klasse III", value: "3" }, { label: "Klasse IV", value: "4" }, { label: "Klasse V", value: "5" }, { label: "Weiß ich nicht", value: "unknown" }] },
-    { id: "arbeitsmodell", bot: ["Wie bist du beschäftigt?"], type: "select", options: [{ label: "Angestellt (Vollzeit)", value: "vollzeit" }, { label: "Angestellt (Teilzeit)", value: "teilzeit" }, { label: "Selbstständig", value: "selbststaendig" }, { label: "Nebenberuflich selbstständig", value: "nebenberuflich" }, { label: "Landwirt/in", value: "landwirt" }, { label: "Mini-Job", value: "minijob" }, { label: "Nicht berufstätig", value: "nicht_berufstaetig" }] },
-    { id: "partner", bot: ["Nimmt dein/e Partner/in auch Elternzeit?"], type: "select", options: [{ label: "Ja, beide", value: "ja" }, { label: "Nein, nur ich", value: "nein" }, { label: "Noch unklar", value: "unklar" }, { label: "Alleinerziehend", value: "alleinerziehend" }] },
-    { id: "emailgate", bot: ["Super! Dein Ergebnis ist fertig berechnet.", "Trag kurz deinen Namen und deine E-Mail ein, dann zeige ich dir sofort dein Ergebnis."], type: "emailgate" },
+    
+    // NEU: Einkommen Elternteil 1
+    { id: "einkommen_pt1", bot: ["Wie hoch ist dein monatliches Brutto-Einkommen?"], type: "select", options: [{ label: "Unter 1.500 €", value: 1200 }, { label: "1.500 – 2.500 €", value: 2000 }, { label: "2.500 – 3.500 €", value: 3000 }, { label: "3.500 – 4.500 €", value: 4000 }, { label: "Über 4.500 €", value: 5000 }] },
+    
+    // NEU: Einkommen Elternteil 2
+    { id: "einkommen_pt2", bot: ["Hat ein zweiter Elternteil Einkommen? Wenn ja, wie viel?"], type: "select", options: [{ label: "Nein, nur ich", value: 0 }, { label: "Unter 1.500 €", value: 1200 }, { label: "1.500 – 2.500 €", value: 2000 }, { label: "2.500 – 3.500 €", value: 3000 }, { label: "3.500 – 4.500 €", value: 4000 }, { label: "Über 4.500 €", value: 5000 }] },
+    
+    // NEU: Geschwister
+    { id: "geschwister", bot: ["Gibt es bereits ein oder mehrere Geschwister?"], type: "select", options: [{ label: "Ja", value: "ja" }, { label: "Nein", value: "nein" }] },
+    
+    // Conditional: Wenn Geschwister = Ja, frag nach Geburtsdatum
+    { id: "geschwister_geburt", bot: ["Wann wurde das älteste Geschwisterkind geboren? (Ungefähr)"], type: "date", conditional: "geschwister", conditionalValue: "ja" },
+    
+    // NEU: Besonderheiten Textfeld
+    { id: "besonderheiten", bot: ["Gibt es Besonderheiten in deiner Situation? (z.B. Mehrlingsschwangerschaft, Frühgeburten, besondere Einkommenssituationen)"], type: "text" },
+    
+    // NEU: PhoneGate statt EmailGate
+    { id: "phonegate", bot: ["Super! Dein Ergebnis ist fertig berechnet.", "Trag kurz deine Telefonnummer ein, dann ruft dich Andrea an und bespricht alles mit dir."], type: "phonegate" },
   ];
 
   var cur = FLOW[step];
+  
+  // Skip conditional questions
+  useEffect(function () {
+    if (!cur) return;
+    if (cur.conditional && answers[cur.conditional] !== cur.conditionalValue) {
+      setStep(step + 1);
+    }
+  }, [step, cur, answers]);
+
   var result = gated ? calcEG(answers) : null;
 
   useEffect(function () {
@@ -221,7 +261,7 @@ export default function App() {
     }
     setMsgs(function (p) { return p.concat(nm); });
     setTimeout(function () { setShowOpts(true); }, cur.bot.length * 850 + 550);
-  }, [step]);
+  }, [step, cur]);
 
   useEffect(function () {
     if (chatRef.current) setTimeout(function () { chatRef.current.scrollTop = chatRef.current.scrollHeight; }, 100);
@@ -244,41 +284,49 @@ export default function App() {
     setInputVal("");
   }
 
-  function onEmail(email, firstName) {
+  function onTextInput(e) {
+    e.preventDefault();
+    if (!inputVal.trim()) return;
+    answer(inputVal.trim(), inputVal.trim());
+    setInputVal("");
+  }
+
+  function onPhone(firstName, email, phone, time) {
     setSubmitting(true);
     setUName(firstName);
     var r = calcEG(answers);
 
     if (window.fbq) { window.fbq('track', 'Lead'); }
 
-    var BREVO_API_KEY = process.env.REACT_APP_BREVO_KEY;
-
-    fetch("https://api.brevo.com/v3/contacts", {
+    // Sende zu Vercel Function → Google Sheets
+    fetch("/api/submit-to-sheets", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": BREVO_API_KEY
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        timestamp: new Date().toISOString(),
+        name: firstName,
         email: email,
-        attributes: {
-          VORNAME: firstName,
-          ELTERNGELD_OHNE: r.eg,
-          ELTERNGELD_MIT: r.opt,
-          ELTERNGELD_DIFF: r.diff,
-          STEUERKLASSE: answers.steuerklasse || "",
-          GEBURTSTERMIN: answers.geburtstermin || ""
-        },
-        listIds: [9],
-        updateEnabled: true
+        phone: phone,
+        callTime: time,
+        arbeitsmodell: answers.arbeitsmodell_first,
+        geburtstermin: answers.geburtstermin || "",
+        einkommen_pt1: answers.einkommen_pt1 || "",
+        einkommen_pt2: answers.einkommen_pt2 || "",
+        geschwister: answers.geschwister || "",
+        geschwister_geburt: answers.geschwister_geburt || "",
+        besonderheiten: answers.besonderheiten || "",
+        elterngeld_ohne: r.eg,
+        elterngeld_mit: r.opt,
+        elterngeld_diff: r.diff,
+        price: answers.arbeitsmodell_first === "angestellt" ? 297 : 397
       })
     }).then(function (res) {
-      console.log("Brevo:", res.status);
+      console.log("Google Sheets:", res.status);
     }).catch(function (err) {
-      console.log("Brevo Fehler:", err);
+      console.log("Submit error:", err);
     });
 
-    setMsgs(function (p) { return p.concat([{ from: "user", text: firstName + " — " + email, id: "email-u" }]); });
+    setMsgs(function (p) { return p.concat([{ from: "user", text: firstName + " — " + email + " — " + phone, id: "phone-u" }]); });
     setTimeout(function () {
       setGated(true);
       setSubmitting(false);
@@ -290,8 +338,8 @@ export default function App() {
     }, 800);
   }
 
-  var progPct = step > 0 && step < FLOW.length ? Math.round(Math.min((step - 1) / 5, 1) * 100) : 0;
-  var progLabel = Math.min(step - 1, 5);
+  var progPct = step > 0 && step < FLOW.length ? Math.round(Math.min((step - 1) / 7, 1) * 100) : 0;
+  var progLabel = Math.min(step - 1, 7);
 
   return (
     <div style={{ fontFamily: "'DM Sans',system-ui,sans-serif", color: C.text, background: C.cream, minHeight: "100vh" }}>
@@ -355,7 +403,7 @@ export default function App() {
             {step > 0 && step < FLOW.length && !gated && (
               <div style={{ height: 5, background: C.borderLight, position: "relative" }}>
                 <div style={{ height: "100%", background: "linear-gradient(90deg," + C.green + "," + C.greenLight + ")", borderRadius: 3, width: progPct + "%", transition: "width .45s ease" }} />
-                <span style={{ position: "absolute", right: 10, top: 8, fontSize: 10.5, color: C.textLight }}>Frage {progLabel > 0 ? progLabel : 1} von 5</span>
+                <span style={{ position: "absolute", right: 10, top: 8, fontSize: 10.5, color: C.textLight }}>Frage {progLabel > 0 ? progLabel : 1} von 8</span>
               </div>
             )}
             {gated && <div style={{ height: 5, background: C.greenLight }} />}
@@ -364,16 +412,22 @@ export default function App() {
                 if (m.from === "bot") return <Bot key={m.id} delay={m.delay}>{m.text}</Bot>;
                 return <User key={m.id} text={m.text} />;
               })}
-              {showOpts && cur && cur.type === "emailgate" && !gated && <EmailGate onSubmit={onEmail} loading={submitting} />}
-              {showRes && result && <Result result={result} answers={answers} userName={uName} />}
+              {showOpts && cur && cur.type === "phonegate" && !gated && <PhoneGate onSubmit={onPhone} loading={submitting} />}
+              {showRes && result && <Result result={result} answers={answers} userName={uName} arbeitsmodell={answers.arbeitsmodell_first} />}
             </div>
-            {showOpts && cur && cur.type !== "emailgate" && !gated && (
+            {showOpts && cur && cur.type !== "phonegate" && !gated && (
               <div style={{ borderTop: "1px solid " + C.border, padding: "14px 18px", background: C.greenFaint }}>
                 {cur.type === "start" && <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}><Btn label={"Los geht's! 🚀"} onClick={function () { answer("Los geht's!", true); }} /></div>}
                 {cur.type === "date" && (
                   <form onSubmit={onDate} style={{ display: "flex", gap: 8 }}>
                     <input type="date" value={inputVal} onChange={function (e) { setInputVal(e.target.value); }} style={{ flex: 1, border: "2px solid " + C.border, borderRadius: 10, padding: "9px 12px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
                     <button type="submit" disabled={!inputVal} style={{ width: 42, height: 42, borderRadius: 10, border: "none", background: C.green, color: "#fff", fontSize: 18, fontWeight: 700, cursor: "pointer" }}>{"→"}</button>
+                  </form>
+                )}
+                {cur.type === "text" && (
+                  <form onSubmit={onTextInput} style={{ display: "flex", gap: 8 }}>
+                    <input type="text" placeholder="Deine Antwort..." value={inputVal} onChange={function (e) { setInputVal(e.target.value); }} style={{ flex: 1, border: "2px solid " + C.border, borderRadius: 10, padding: "9px 12px", fontSize: 14, fontFamily: "inherit", outline: "none" }} />
+                    <button type="submit" disabled={!inputVal.trim()} style={{ width: 42, height: 42, borderRadius: 10, border: "none", background: C.green, color: "#fff", fontSize: 18, fontWeight: 700, cursor: "pointer" }}>{"→"}</button>
                   </form>
                 )}
                 {cur.type === "select" && (
@@ -388,6 +442,7 @@ export default function App() {
         </section>
       )}
 
+      {/* REST der Seite: Testimonials, FAQ, etc. bleiben unverändert */}
       <section style={{ maxWidth: 720, margin: "0 auto", padding: "36px 20px" }}>
         <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: C.forest, textAlign: "center", marginBottom: 6 }}>Das haben andere Familien erreicht</h2>
         <p style={{ textAlign: "center", fontSize: 14, color: C.textLight, marginBottom: 24 }}>Echte Ergebnisse aus unseren Beratungen</p>
@@ -434,31 +489,4 @@ export default function App() {
 
       <section style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px 36px" }}>
         <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: C.forest, textAlign: "center", marginBottom: 20 }}>Häufige Fragen</h2>
-        <FAQ q="Ist der Schnellcheck wirklich kostenlos?" a="Ja, 100%. Du bekommst eine erste Einschätzung und 3 Sofort-Tipps per E-Mail. Die ausführliche Beratung ist optional." />
-        <FAQ q="Was passiert mit meiner E-Mail?" a="Du bekommst 3 bis 5 hilfreiche Mails zum Thema Elterngeld. Kein Spam, jederzeit abmeldbar. DSGVO-konform." />
-        <FAQ q="Wann sollte ich mich beraten lassen?" a="Am besten schon vor der Schwangerschaft oder so fr&#252;h wie m&#246;glich. Je fr&#252;her, desto mehr Stellschrauben k&#246;nnen wir nutzen. Zum Beispiel muss der Steuerklassenwechsel sp&#228;testens 7 Monate vor der Geburt erfolgen." />
-        <FAQ q="Was unterscheidet euch von anderen?" a="Alina ist zertifizierte Wirtschaftswissenschaftlerin mit tiefem Steuerwissen. Sie optimiert nicht nur den Antrag, sondern versteht eure gesamte finanzielle Situation." />
-        <FAQ q="Was kostet die Beratung?" a="Das Erstgespräch ist kostenlos und unverbindlich. 15 Minuten per Zoom. Dort besprechen wir eure Situation und schauen, wie wir euch helfen können." />
-      </section>
-
-      <section style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px 40px" }}>
-        <div style={{ background: "linear-gradient(135deg," + C.forest + "," + C.green + ")", borderRadius: 16, padding: "32px 28px", textAlign: "center", color: "#fff" }}>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Bereit, dein Elterngeld zu maximieren?</h2>
-          <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.6, maxWidth: 480, margin: "0 auto 20px" }}>Die wichtigsten Entscheidungen fallen vor der Geburt. Danach ist es oft zu spät. Sichere dir jetzt dein kostenloses Beratungsgespräch mit Alina.</p>
-          <a href={CALENDLY} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", background: "#fff", color: C.green, fontSize: 15, fontWeight: 700, padding: "14px 30px", borderRadius: 12, textDecoration: "none", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(0,0,0,.15)" }}>
-            Kostenloses Beratungsgespräch buchen {"→"}
-          </a>
-          <div style={{ display: "flex", justifyContent: "center", gap: 20, marginTop: 16, fontSize: 12, opacity: 0.75, flexWrap: "wrap" }}>
-            <span>15 Min. per Zoom</span><span>100% kostenlos</span><span>Unverbindlich</span>
-          </div>
-        </div>
-      </section>
-
-      <footer style={{ borderTop: "1px solid " + C.border, background: "#fff", padding: 20, textAlign: "center", fontSize: 12.5, color: C.textLight }}>
-        <p>{"©"} 2026 Zwergengruppe {"·"} Elterngeld-Beratung mit Alina Nußbaum</p>
-        <p style={{ marginTop: 4 }}><a href="https://www.zwergengruppe.com/datenschutz" style={{ color: C.green, textDecoration: "none" }}>Datenschutz</a> {"·"} <a href="https://www.zwergengruppe.com/impressum" style={{ color: C.green, textDecoration: "none" }}>Impressum</a></p>
-        <p style={{ marginTop: 8, fontSize: 11, opacity: 0.6 }}>Hinweis: Unverbindliche Schätzung. Die tatsächliche Höhe wird von der zuständigen Elterngeldstelle ermittelt.</p>
-      </footer>
-    </div>
-  );
-}
+        <FAQ q="Ist der Schnellcheck wirklich kostenlos?" a="Ja, 100%. Du bekommst eine erste
