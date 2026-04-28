@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
+// Manual redeploy trigger 2026-04-28
+
 var CALENDLY = "https://calendly.com/zwergengruppe/zwergengruppe-kennenlerngesprach-1";
 var LOGO = "https://i.imgur.com/SWNd8hL.png";
 var ALINA_FOTO = "https://i.imgur.com/T3OCg2m.jpeg";
